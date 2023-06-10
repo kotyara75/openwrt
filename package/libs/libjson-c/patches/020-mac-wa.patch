@@ -1,0 +1,11 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -277,7 +277,7 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "G
+     set(CMAKE_C_FLAGS           "${CMAKE_C_FLAGS} -Wwrite-strings")
+     set(CMAKE_C_FLAGS           "${CMAKE_C_FLAGS} -Wno-unused-parameter")
+     if (NOT WIN32)
+-        set(CMAKE_C_FLAGS           "${CMAKE_C_FLAGS} -Wstrict-prototypes")
++        # set(CMAKE_C_FLAGS           "${CMAKE_C_FLAGS} -Wstrict-prototypes")
+     endif()
+ 
+     add_definitions(-D_GNU_SOURCE)

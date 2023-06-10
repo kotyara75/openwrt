@@ -115,7 +115,7 @@
  	fi
 +endif
 +ifeq ($(ENABLE_LIB_SHARED),1)
-+	$(CC) -shared -Wl,-soname -Wl,libbz2.so.1.0 $(LDFLAGS) -o libbz2.so.1.0.8 $(OBJS)
++	$(CC) -shared -Wl,-install_name -Wl,libbz2.so.1.0 $(LDFLAGS) -o libbz2.so.1.0.8 $(OBJS)
 +	rm -f libbz2.so.1.0
 +	rm -f libbz2.so.1
 +	rm -f libbz2.so
