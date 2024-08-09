@@ -1,0 +1,49 @@
+--- a/drivers/mtd/spi-nor/Makefile
++++ b/drivers/mtd/spi-nor/Makefile
+@@ -6,6 +6,7 @@ spi-nor-objs			+= catalyst.o
+ spi-nor-objs			+= eon.o
+ spi-nor-objs			+= esmt.o
+ spi-nor-objs			+= everspin.o
++spi-nor-objs			+= fudan.o
+ spi-nor-objs			+= fujitsu.o
+ spi-nor-objs			+= gigadevice.o
+ spi-nor-objs			+= intel.o
+--- a/drivers/mtd/spi-nor/core.h
++++ b/drivers/mtd/spi-nor/core.h
+@@ -477,6 +477,7 @@ extern const struct spi_nor_manufacturer
+ extern const struct spi_nor_manufacturer spi_nor_eon;
+ extern const struct spi_nor_manufacturer spi_nor_esmt;
+ extern const struct spi_nor_manufacturer spi_nor_everspin;
++extern const struct spi_nor_manufacturer spi_nor_fudan;
+ extern const struct spi_nor_manufacturer spi_nor_fujitsu;
+ extern const struct spi_nor_manufacturer spi_nor_gigadevice;
+ extern const struct spi_nor_manufacturer spi_nor_intel;
+--- /dev/null
++++ b/drivers/mtd/spi-nor/fudan.c
+@@ -0,0 +1,16 @@
++// SPDX-License-Identifier: GPL-2.0
++
++#include <linux/mtd/spi-nor.h>
++
++#include "core.h"
++
++static const struct flash_info fudan_parts[] = {
++	/* Shanghai Fudan Microlectronics -- fn25xxx */
++	{ "fm25q128",  INFO(0xa14018, 0, 64 * 1024,  256, 0) },
++};
++
++const struct spi_nor_manufacturer spi_nor_fudan = {
++	.name = "fudan",
++	.parts = fudan_parts,
++	.nparts = ARRAY_SIZE(fudan_parts),
++};
+--- a/drivers/mtd/spi-nor/core.c
++++ b/drivers/mtd/spi-nor/core.c
+@@ -1847,6 +1847,7 @@ static const struct spi_nor_manufacturer
+ 	&spi_nor_eon,
+ 	&spi_nor_esmt,
+ 	&spi_nor_everspin,
++	&spi_nor_fudan,
+ 	&spi_nor_fujitsu,
+ 	&spi_nor_gigadevice,
+ 	&spi_nor_intel
