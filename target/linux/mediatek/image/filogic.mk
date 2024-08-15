@@ -882,6 +882,24 @@ define Device/unielec_u7981-01-nand
 endef
 TARGET_DEVICES += unielec_u7981-01-nand
 
+define Device/wavlink_wn573hx3
+  $(Device/uimage-lzma-loader)
+  IMAGE_SIZE := 16384k
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  DEVICE_VENDOR := WAVLINK
+  DEVICE_MODEL := WN573HX3
+  DEVICE_DTS := mt7981b-wavlink-wn573hx3
+  DEVICE_DTS_DIR := ../dts
+  SUPPORTED_DEVICES += mediatek,mt7981-spim-nor-rfb
+  DEVICE_PACKAGES := kmod-mt7981-firmware mt7981-wo-firmware -uboot-envtools
+  IMAGES += factory.bin
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  # IMAGE/sysupgrade.bin := append-kernel | pad-to 128k | append-rootfs | pad-rootfs | check-size | append-metadata
+  IMAGE/factory.bin := append-kernel | pad-to 128k | append-rootfs | pad-rootfs | check-size
+endef
+TARGET_DEVICES += wavlink_wn573hx3
+
 define Device/xiaomi_mi-router-ax3000t
   DEVICE_VENDOR := Xiaomi
   DEVICE_MODEL := Mi Router AX3000T

@@ -73,7 +73,8 @@ mediatek_setup_interfaces()
 	cudy,re3000-v1|\
 	netgear,wax220|\
 	ubnt,unifi-6-plus|\
-	zyxel,nwa50ax-pro)
+	zyxel,nwa50ax-pro|\
+	wavlink,wn573hx3)
 		ucidef_set_interface_lan "eth0"
 		;;
 	smartrg,sdg-8622|\

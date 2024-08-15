@@ -1,0 +1,307 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+
+/dts-v1/;
+#include "mt7981.dtsi"
+
+/ {
+    model = "WAVLINK WN573HX3";
+    compatible = "wavlink,wn573hx3", "mediatek,mt7981";
+
+    aliases {
+		label-mac-device = &gmac1;		
+        led-boot = &led_status_blue;
+		led-failsafe = &led_status_blue;
+		led-running = &led_status_blue;
+		led-upgrade = &led_status_blue;
+        serial0 = &uart0;
+	};
+
+    chosen {
+        bootargs = "console=ttyS0,115200n1 loglevel=8  \t\t\t\tearlycon=uart8250,mmio32,0x11002000";
+    };
+
+    memory {
+        reg = <0 0x40000000 0 0x10000000>;
+    };
+
+    keys {
+        compatible = "gpio-keys";
+
+        reset {
+            label = "reset";
+            linux,code = <KEY_RESTART>;
+            gpios = <&pio 0 GPIO_ACTIVE_LOW>;
+        };
+    };
+
+    leds {
+        compatible = "gpio-leds";
+
+        led_status_blue: status_led {
+            label = "blue:status";
+            gpios = <&pio 13 GPIO_ACTIVE_HIGH>;
+        };
+
+        eth0_led: eth0 {
+            label = "green:eth0";
+            gpios = <&pio 9 GPIO_ACTIVE_HIGH>;
+            default-state = "off";
+        };
+    };
+};
+
+&eth {
+    status = "okay";
+
+	gmac1: mac@1 {
+		compatible = "mediatek,eth-mac";
+		reg = <1>;
+		phy-mode = "gmii";
+		phy-handle = <&int_gbe_phy>;
+
+        nvmem-cells = <&macaddr_factory_3fffa>;
+	    nvmem-cell-names = "mac-address";
+	};
+};
+
+&mdio_bus {
+    int_gbe_phy: ethernet-phy@0 {
+		compatible = "ethernet-phy-id03a2.9461";
+	};
+};
+
+&crypto {
+	status = "okay";
+};
+
+&pio {
+	spi1_flash_pins: spi1-pins {
+		mux {
+            function = "spi";
+            groups = "spi1_1";
+        };
+	};
+
+	spi2_flash_pins: spi2-pins {
+		mux {
+            function = "spi";
+            groups = "spi2", "spi2_wp_hold";
+		};
+
+		conf-pu {
+			pins = "SPI2_CS", "SPI2_HOLD", "SPI2_WP";
+			drive-strength = <MTK_DRIVE_8mA>;
+            bias-pull-up = <MTK_PUPD_SET_R1R0_11>;
+		};
+
+
+		conf-pd {
+			pins = "SPI2_CLK", "SPI2_MOSI", "SPI2_MISO";
+			drive-strength = <MTK_DRIVE_8mA>;
+            bias-pull-up = <MTK_PUPD_SET_R1R0_11>;
+		};
+	};
+};
+
+&spi2 {
+    compatible = "mediatek,ipm-spi-quad", "mediatek,spi-ipm";
+    pinctrl-names = "default";
+    pinctrl-0 = <&spi2_flash_pins>;
+    status = "okay";
+
+    spi_nor@0 {
+        #address-cells = <1>;
+        #size-cells = <1>;
+
+        compatible = "jedec,spi-nor";
+        reg = <0>;
+
+        spi-max-frequency = <52000000>;
+        spi-tx-buswidth = <4>;
+        spi-rx-buswidth = <4>;
+
+        // spi-cal-enable;
+        // spi-cal-mode = "read-data";
+        // spi-cal-datalen = <7>;
+        // spi-cal-data = [53 46 5f 42 4f 4f 54];
+        // spi-cal-addrlen = <1>;
+        // spi-cal-addr = <0x00>;
+
+        partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+            partition@00000 {
+                label = "BL2";
+                reg = <0x00 0x40000>;
+                read-only;
+            };
+
+            partition@40000 {
+                label = "u-boot-env";
+                reg = <0x40000 0x10000>;
+                read-only;
+            };
+
+            factory: partition@50000 {
+                label = "Factory";
+                reg = <0x50000 0xb0000>;
+                read-only;
+            };
+
+            partition@100000 {
+                label = "FIP";
+                reg = <0x100000 0x80000>;
+                read-only;
+            };
+
+            partition@180000 {
+                compatible = "denx,fit";
+                label = "firmware";
+                reg = <0x180000 0xe00000>;
+            };
+
+            partition@F80000 {
+                label = "HW";
+                reg = <0xf80000 0x80000>;
+            };
+
+            all {
+                label = "all";
+                reg = <0x00 0x1000000>;
+            };
+        };
+    };
+};
+
+&uart0 {
+	status = "okay";
+};
+
+&watchdog {
+	status = "okay";
+};
+
+&factory {
+	compatible = "nvmem-cells";
+	#address-cells = <1>;
+	#size-cells = <1>;
+
+    macaddr_factory_4: macaddr@4 {
+        reg = <0x4 0x6>;
+    };
+
+	macaddr_factory_3fff4: macaddr@3fff4 {
+		reg = <0x3fff4 0x6>;
+	};
+
+    macaddr_factory_3fffa: macaddr@3fffa {
+		reg = <0x3fffa 0x6>;
+	};
+};
+
+&wifi {
+    mediatek,mtd-eeprom = <&factory 0x0>;
+	status = "okay";
+};
+
+// #################
+// reset-controller {
+// 			compatible = "ti,syscon-reset";
+// 			#reset-cells = <0x01>;
+// 			ti,reset-bits = <0x34 0x04 0x34 0x04 0x34 0x04 0x28>;
+// 			phandle = <0x07>;
+// 		};
+
+// vs Nothing
+// ################
+// 	wed@15010000 {
+// 		compatible = "mediatek,wed";
+// 		wed_num = <0x02>;
+// vs
+//     wed: wed@15010000 {
+// 		compatible = "mediatek,mt7981-wed",
+// 			     "mediatek,mt7986-wed",
+// 			     "syscon";
+// ################      
+// 	hnat@15000000 {
+// 		compatible = "mediatek,mtk-hnat_v4";
+// 		reg = <0x00 0x15100000 0x00 0x80000>;
+// 		resets = <0x0d 0x00>;
+// 		reset-names = "mtketh";
+// 		status = "okay";
+// 		mtketh-wan = "eth1";
+// 		mtketh-lan = "lan";
+// 		mtketh-max-gmac = <0x02>;
+// 	};
+// vs Nothing
+// ################ 
+// wbsys@18000000 {
+// 		compatible = "mediatek,wbsys";
+// 		reg = <0x00 0x18000000 0x00 0x1000000>;
+// 		interrupts = <0x00 0xd5 0x04 0x00 0xd6 0x04 0x00 0xd7 0x04 0x00 0xd8 0x04>;
+// 		chip_id = <0x7981>;
+// 	};
+// vs Nothing
+// ################
+// 	spi@1100b000 {
+// 		compatible = "mediatek,ipm-spi-single";
+//      pinctrl-0 = <0x14>;
+// vs
+// spi1: spi@1100b000 {
+// 		compatible = "mediatek,mt7986-spi-ipm", "mediatek,spi-ipm";
+// ################
+// 	spi@11009000 {
+// 		compatible = "mediatek,ipm-spi-quad";
+//      status = "okay";
+// 		pinctrl-names = "default";
+// 		pinctrl-0 = <0x15>;
+// vs 
+// 	spi2: spi@11009000 {
+// 		compatible = "mediatek,mt7986-spi-ipm", "mediatek,spi-ipm";
+// ################
+// 	usb-phy@11e10000 {
+// 		#address-cells = <0x02>;
+// 		#size-cells = <0x02>;
+//      ranges;
+// 		status = "okay";
+
+//         usb-phy@11e10000 {
+//             reg = <0x00 0x11e10000 0x00 0x700>;
+//             status = "okay";
+//         }
+
+//         usb-phy@11e10700 {
+// 			reg = <0x00 0x11e10700 0x00 0x900>;
+// 			nvmem-cells = <0x19 0x1a 0x1b>;
+// 			nvmem-cell-names = "intr\0rx_imp\0tx_imp";
+// 		};
+//     };           
+// vs
+// 	usb_phy: usb-phy@11e10000 {
+// 		#address-cells = <1>;
+// 		#size-cells = <1>;
+//         ranges = <0 0 0x11e10000 0x1700>;
+//         status = "disabled";
+
+//         u2port0: usb-phy@0 {
+// 			reg = <0x0 0x700>;
+//         };
+
+//         u3port0: usb-phy@700 {
+// 			reg = <0x700 0x900>;
+// 		};
+//     };
+// ################
+// 	clkitg {
+// 		compatible = "simple-bus";
+
+// 		bring-up {
+// 			compatible = "mediatek,clk-bring-up";
+// 			clocks = <0x05 0x00 0x05 0x01 0x05 0x02 0x05 0x03 0x05 0x04 0x05 0x05 0x05 0x06 0x05 0x07 0x09 0x00 0x1c 0x09 0x02 0x09 0x03 0x09 0x04 0x1c 0x09 0x06 0x09 0x07 0x1c 0x1c 0x1c 0x1c 0x09 0x0c 0x09 0x0d 0x09 0x0e 0x09 0x0f 0x09 0x10 0x09 0x11 0x1c 0x1c 0x1c 0x1c 0x1c 0x09 0x17 0x09 0x18 0x09 0x1a 0x09 0x1b 0x09 0x1c 0x09 0x1d 0x09 0x1e 0x09 0x1f 0x09 0x20 0x09 0x21 0x1c 0x09 0x23 0x1c 0x1c 0x1c 0x1c 0x1c 0x1c 0x1c 0x1c 0x1c 0x02 0x0b 0x1c 0x1c 0x1c 0x1c 0x02 0x11 0x1c 0x1c 0x1c 0x1c 0x1c 0x02 0x17 0x1c 0x02 0x19 0x02 0x1a 0x02 0x1b 0x1c 0x1c 0x1c 0x1c 0x1c 0x1c 0x1c 0x1c 0x1c 0x1c 0x1c 0x1c 0x1c 0x1c 0x02 0x2a 0x02 0x2b 0x02 0x2c 0x02 0x2d 0x02 0x2e 0x1c 0x1c 0x02 0x31 0x02 0x32 0x02 0x33 0x02 0x34 0x02 0x35 0x02 0x36 0x02 0x37 0x1c 0x1c 0x1c 0x08 0x01 0x1c 0x08 0x05 0x08 0x06 0x08 0x07 0x08 0x04 0x08 0x09 0x08 0x0c 0x08 0x0f 0x08 0x10 0x08 0x12 0x08 0x14 0x08 0x15 0x08 0x16 0x08 0x17 0x08 0x19 0x08 0x1a 0x1c 0x08 0x1d 0x08 0x1e 0x08 0x21 0x1c 0x08 0x24 0x08 0x25 0x1c 0x08 0x29 0x08 0x26 0x08 0x2b 0x08 0x2a 0x1c 0x08 0x31 0x1c 0x1c 0x1c 0x08 0x56 0x08 0x37 0x08 0x3d 0x08 0x3e 0x08 0x3f 0x08 0x45 0x08 0x41 0x08 0x46 0x08 0x47 0x08 0x48 0x08 0x49 0x08 0x4a 0x08 0x3a 0x1c 0x1c 0x1c 0x1c 0x08 0x52 0x1c 0x1c 0x1c 0x08 0x56 0x08 0x57 0x08 0x58 0x08 0x59 0x08 0x5a 0x08 0x5b 0x08 0x5c 0x08 0x5d 0x08 0x5e 0x08 0x5f 0x1c 0x1c 0x08 0x62 0x08 0x5e 0x1c 0x08 0x64 0x08 0x56 0x08 0x69 0x08 0x6a 0x08 0x6b 0x08 0x6c>;
+// 			clock-names = "0\01\02\03\04\05\06\07\08\09\010\011\012\013\014\015\016\017\018\019\020\021\022\023\024\025\026\027\028\029\030\031\032\033\034\035\036\037\038\039\040\041\042\043\044\045\046\047\048\049\050\051\052\053\054\055\056\057\058\059\060\061\062\063\064\065\066\067\068\069\070\071\072\073\074\075\076\077\078\079\080\081\082\083\084\085\086\087\088\089\090\091\092\093\094\095\096\097\098\099\0100\0101\0102\0103\0104\0105\0106\0107\0108\0109\0110\0111\0112\0113\0114\0115\0116\0117\0118\0119\0120\0121\0122\0123\0124\0125\0126\0127\0128\0129\0130\0131\0132\0133\0134\0135\0136\0137\0138\0139\0140\0141\0142\0143\0144\0145\0146\0147\0148\0149\0150\0151\0152\0153\0154\0155\0156\0157\0158\0159\0160\0161\0162\0163\0164\0165\0166\0167\0168\0169\0170\0171\0172\0173\0174\0175\0176\0177\0178\0179\0180\0181\0182\0183";
+// 		};
+// 	};
+// va Nothing    
+// ################
